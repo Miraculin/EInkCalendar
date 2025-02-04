@@ -1,0 +1,10 @@
+credentials.json
+notes.txt
+*.kra*
+token.json
+config.json
+google_calendar.py
+__pycache__
+test*.html
+cal_sample.html
+output.html

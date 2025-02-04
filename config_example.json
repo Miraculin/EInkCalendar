@@ -1,0 +1,6 @@
+{
+    "weather_api_key": "insert_open_weather_map_api_key_here",
+    "latitude": 0.0,
+    "longitude":0.0
+
+}

@@ -1,0 +1,66 @@
+.calendar {
+    display: grid;
+    grid-template-columns: 1359px 500px 500px;
+    grid-template-rows: 226px 227px 226px 227px 226px 227px; 
+    grid-template-areas: 
+        "main date"
+        "main weather"
+        "main today"        
+        "main today"
+        "main today"
+        "main today";
+
+        
+}
+
+.container {
+    display: grid; 
+    grid-template-columns: 194px 194px 194px 194px 194px 194px 194px; 
+    grid-template-rows: 226px 227px 226px 227px 226px 227px; 
+    grid-template-areas: 
+      ". . . . . . ."
+      ". . . . . . ."
+      ". . . . . . ."
+      ". . . . . . ."
+      ". . . . . . ."
+      ". . . . . . ."; 
+    width: 1359px; 
+    height: 1359px;
+    grid-area:main;
+  }
+
+.entry {
+    border: 1px solid;
+}
+
+.date-area {
+    border: 1px solid;
+    grid-area: date;
+}
+
+.weather-area {
+    border: 1px solid;
+    grid-area: weather;
+}
+.today-area {
+    border: 1px solid;
+    grid-area: today;
+}
+
+#today {
+    background-color: white;
+    color: black;
+    filter: invert(0.25);
+}
+
+.inactive-time {
+    color:black;
+    filter: invert(0.50);
+}
+
+ul.events {
+        list-style-type: none; /* Remove bullets */
+        padding: 0; /* Remove padding */
+        margin: 20px; /* Remove margins */
+}
+
