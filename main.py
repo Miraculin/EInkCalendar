@@ -3,6 +3,7 @@ import weather.weather as wm
 #from weather import Weather
 import ecalendar.ecalendar as ecal
 import ecalendar.event as event
+from g_calendar.g_calendar import GCalendar
 from datetime import date, timedelta
 
 def main():
@@ -18,9 +19,13 @@ def main():
     cal = ecal.ECalendar()
 
     #load events
-    #render calendar
-    events = []
+    gcal = GCalendar()
+    gcal_events = gcal.getEvents()
 
+    # Convert to internal Event class
+    events =event.Event.eventsFromGCal(gcal_events)
+
+    #render calendar
     cal.add_events(events)
     cal.render(weather_manager.get_weather(), output_path="output.html")
 

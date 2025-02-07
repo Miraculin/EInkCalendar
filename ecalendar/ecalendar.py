@@ -21,7 +21,7 @@ class ECalendar:
             self.events[e.start_date].append(e)
             if e.start_date != e.end_date:
                 self.events[e.end_date].append(e)
-        self.update() 
+        self.update()
 
     def update(self, debug = False):
         self.today = date.today()
