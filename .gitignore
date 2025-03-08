@@ -6,6 +6,7 @@ config.json
 test*.html
 cal_sample.html
 output.html
+*.bmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

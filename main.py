@@ -14,6 +14,8 @@ def main():
     lat = config_data["latitude"]
     lon = config_data["longitude"]
     API_KEY = config_data["weather_api_key"]
+    width = config_data["display_width"]
+    height = config_data["display_height"]
     
     weather_manager = wm.Weather(lat, lon, API_KEY)
     cal = ecal.ECalendar()
@@ -23,11 +25,12 @@ def main():
     gcal_events = gcal.getEvents()
 
     # Convert to internal Event class
-    events =event.Event.eventsFromGCal(gcal_events)
+    events = event.Event.eventsFromGCal(gcal_events)
 
     #render calendar
     cal.add_events(events)
-    cal.render(weather_manager.get_weather(), output_path="output.html")
+    cal.render_web(weather_manager.get_weather(), output_path="output.html")
+    cal.render(weather_manager.get_weather(), (width, height), output_path="output.bmp")
 
 if __name__ == "__main__":
     main()
