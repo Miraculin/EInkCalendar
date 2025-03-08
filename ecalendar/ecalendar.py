@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from datetime import date, timedelta
 from PIL import Image, ImageDraw, ImageFont
+import requests
 
 from .entry import Entry
 from .event import Event
@@ -78,6 +79,7 @@ class ECalendar:
         self.__render_area_delimiters(draw, 1359)
         self.__render_entries(draw,font)
         self.__render_date_area(draw, 1359, bigfont)
+        self.__render_weather_area(draw, im, today_weather, 1359, bigfont)
 
         if output_path is None:
             im.save(sys.stdout, "BMP")
@@ -107,7 +109,15 @@ class ECalendar:
                 draw.text((x*194+5,y*228+5), e.date.strftime("%b %d %a"), 188, font)
             else:
                 draw.text((x*194+5,y*228+5), e.date.strftime("%b %d %a"), 0, font)
+
+            events_list = "\n".join(e.events)
+            draw.multiline_text((x*194+5, y*228+32+5), events_list, 0, font)
     
     def __render_date_area(self, draw,width, font):
         draw.text((width+5, 10), self.today.strftime("%A, The %d of %B in the Year %Y"), 0, font)
+
+    def __render_weather_area(self, draw, im, weather, width, font):
+        draw.multiline_text((width+5, 236), "\n".join([f"{weather.temperature}°C", weather.weather]), 0, font)
+        icon = Image.open(requests.get(weather.icon, stream=True).raw)
+        im.paste(icon,(width+5, 286), icon)
 
