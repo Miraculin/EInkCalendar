@@ -2,6 +2,7 @@ from jinja2 import Environment, FileSystemLoader
 from datetime import date, timedelta
 from PIL import Image, ImageDraw, ImageFont
 import requests
+from textwrap import wrap
 
 from .entry import Entry
 from .event import Event
@@ -73,51 +74,81 @@ class ECalendar:
     def render(self, today_weather, resolution, output_path = None):
         im = Image.new("L", resolution, 255) # 255 is white
         draw = ImageDraw.Draw(im)
-        font = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', 12)
-        bigfont = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', 20)
 
-        self.__render_area_delimiters(draw, 1359)
-        self.__render_entries(draw,font)
-        self.__render_date_area(draw, 1359, bigfont)
-        self.__render_weather_area(draw, im, today_weather, 1359, bigfont)
+        font_size = 18
+        bigfont_size = 28
+
+        font = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', font_size)
+        bigfont = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', bigfont_size)
+        
+        width = resolution[0]
+        height = resolution[1]
+
+        calendar_area_ratio = 0.7 #Percentage of width taken up by the calendar
+        calendar_width = int(calendar_area_ratio*width)
+        bar_width = width-calendar_width
+
+        cell_width = calendar_width//7
+        cell_height = height//6
+
+        date_area_height = 1*cell_height
+        weather_area_height = 1* cell_height
+
+        self.__render_area_delimiters(draw, calendar_width,width,height,date_area_height, weather_area_height)
+        self.__render_entries(draw,cell_width, cell_height,font)
+        self.__render_date_area(draw, calendar_width, bar_width, date_area_height, bigfont)
+        self.__render_weather_area(draw, im, today_weather, calendar_width, date_area_height, bar_width, weather_area_height, bigfont)
 
         if output_path is None:
             im.save(sys.stdout, "BMP")
         else:
             im.save(output_path, "BMP")
     
-    def __render_area_delimiters(self, draw,width):
+    def __render_area_delimiters(self, draw,start, width, height,date_area_height, weather_area_height):
         '''draw: ImageDraw to render to'''
-        draw.line([(width,0),(width, 1404)],0,1)
-        draw.line([(width,226),(width+513, 226)],0,1)
-        draw.line([(width,453),(width+513, 453)],0,1)
 
-    def __render_entries(self, draw,font):
+        draw.line([(start,0),(start, height)],0,1)
+        draw.line([(start,date_area_height),(width, date_area_height)],0,1)
+        draw.line([(start,date_area_height+weather_area_height),(width, date_area_height+weather_area_height)],0,1)
+
+    def __render_entries(self, draw, cell_width, cell_height, font):
+        text_padding = 5 #padding from left and top in px for text in each calendar entry
+        text_overflow = 20 #length of string before we overflow to next line
+
         for i, e in enumerate(self.entries):
             x = i%7
             y = i//7
-            xy = ((x*194, y*228),((x+1)*194,(y+1)*228))
-            date_divide = [(x*194, y*228+32),((x+1)*194,y*228+32)]
+            
+            xy = ((x*cell_width, y*cell_height),((x+1)*cell_width,(y+1)*cell_height))
+            
+            date_divide = [(x*cell_width, y*cell_height+32),((x+1)*cell_width,y*cell_height+32)]
+            
             draw.rectangle(xy,255,0,1)
             draw.line(date_divide,0,1)
 
             if e.date == self.today:
-                today_indicator = [(x*194, y*228),((x+1)*194,(y)*228+32)]
+                today_indicator = [(x*cell_width, y*cell_height),((x+1)*cell_width,(y)*cell_height+32)]
                 draw.rectangle(today_indicator,188,0,1)
-                draw.text((x*194+5,y*228+5), e.date.strftime("%b %d %a"), 0, font)
+
+                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 0, font)
             elif e.date < self.today or e.date.month > self.today.month+1:
-                draw.text((x*194+5,y*228+5), e.date.strftime("%b %d %a"), 188, font)
+                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 188, font)
             else:
-                draw.text((x*194+5,y*228+5), e.date.strftime("%b %d %a"), 0, font)
+                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 0, font)
 
-            events_list = "\n".join(e.events)
-            draw.multiline_text((x*194+5, y*228+32+5), events_list, 0, font)
+            events_list = "\n".join(map(lambda x: "\n  ".join(wrap(x, width=text_overflow)),e.events))
+            draw.multiline_text((x*cell_width+text_padding, y*cell_height+32+text_padding), events_list, 0, font)
     
-    def __render_date_area(self, draw,width, font):
-        draw.text((width+5, 10), self.today.strftime("%A, The %d of %B in the Year %Y"), 0, font)
+    def __render_date_area(self, draw, start, width, height, font):
+        text_padding = 5
+        date_text = self.today.strftime("%A\n The %d of %B in the Year %Y")
+        draw.multiline_text((start+width//2+text_padding, height//2+text_padding), date_text, 0, font, anchor="mm",align="center")
 
-    def __render_weather_area(self, draw, im, weather, width, font):
-        draw.multiline_text((width+5, 236), "\n".join([f"{weather.temperature}°C", weather.weather]), 0, font)
+    def __render_weather_area(self, draw, im, weather, start_x,start_y, width, height, font):
+        text_padding = 5
+
+        weather_text = "\n".join([f"{weather.temperature}°C", weather.weather])
+        draw.multiline_text((start_x+width//2+text_padding, start_y+height//2+text_padding), weather_text, 0, font, anchor="mm", align="center")
         icon = Image.open(requests.get(weather.icon, stream=True).raw)
-        im.paste(icon,(width+5, 286), icon)
+        im.paste(icon,(start_x+text_padding, 286), icon)
 
