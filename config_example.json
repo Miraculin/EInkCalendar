@@ -3,6 +3,6 @@
     "latitude": 0.0,
     "longitude":0.0,
     "display_width":1872,
-    "display_height":1404
-
+    "display_height":1404,
+    "font": "/usr/share/fonts/OpenSans/OpenSans-Regular.ttf"
 }

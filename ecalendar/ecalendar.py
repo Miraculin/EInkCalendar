@@ -71,21 +71,25 @@ class ECalendar:
                 f.write(content)
 
 
-    def render(self, today_weather, resolution, output_path = None):
+    def render(self, today_weather, config_data, output_path = None):
+        conf = config_data
+        width = conf.display_width
+        height = conf.display_height
+
+        resolution = (width, height)
+        font_file = conf.font
+
         im = Image.new("L", resolution, 255) # 255 is white
         draw = ImageDraw.Draw(im)
 
-        font_size = 18
-        bigfont_size = 28
+        font_size = 20
+        bigfont_size = 40
 
-        font = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', font_size)
-        bigfont = ImageFont.truetype(r'/usr/share/fonts/truetype/arial.ttf', bigfont_size)
-        
-        width = resolution[0]
-        height = resolution[1]
+        font = ImageFont.truetype(font_file, font_size)
+        bigfont = ImageFont.truetype(font_file, bigfont_size)
 
-        calendar_area_ratio = 0.7 #Percentage of width taken up by the calendar
-        calendar_width = int(calendar_area_ratio*width)
+        calendar_area_ratio = 0.75 #Percentage of width taken up by the calendar
+        calendar_width = 7*(int(calendar_area_ratio*width)//7) # Round to nearest multiple of 7, as we will always have 7 cells (1 week)
         bar_width = width-calendar_width
 
         cell_width = calendar_width//7
@@ -121,34 +125,35 @@ class ECalendar:
             
             xy = ((x*cell_width, y*cell_height),((x+1)*cell_width,(y+1)*cell_height))
             
-            date_divide = [(x*cell_width, y*cell_height+32),((x+1)*cell_width,y*cell_height+32)]
+            date_divide_height = 32
+            date_divide = [(x*cell_width, y*cell_height+date_divide_height),((x+1)*cell_width,y*cell_height+date_divide_height)]
             
             draw.rectangle(xy,255,0,1)
             draw.line(date_divide,0,1)
+            
+            date_center_x = x*cell_width+cell_width//2
+            date_center_y = y*cell_height+date_divide_height
+            date_xy = (date_center_x, date_center_y)
 
             if e.date == self.today:
-                today_indicator = [(x*cell_width, y*cell_height),((x+1)*cell_width,(y)*cell_height+32)]
+                today_indicator = [(x*cell_width, y*cell_height),((x+1)*cell_width,(y)*cell_height+date_divide_height)]
                 draw.rectangle(today_indicator,188,0,1)
 
-                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 0, font)
-            elif e.date < self.today or e.date.month > self.today.month+1:
-                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 188, font)
+            if e.date < self.today or e.date.month > self.today.month+1:
+                draw.text(date_xy, e.date.strftime("%b %d %a"), 188, font, anchor="md")
             else:
-                draw.text((x*cell_width+text_padding,y*cell_height+text_padding), e.date.strftime("%b %d %a"), 0, font)
+                draw.text(date_xy, e.date.strftime("%b %d %a"), 0, font,anchor="md")
 
             events_list = "\n".join(map(lambda x: "\n  ".join(wrap(x, width=text_overflow)),e.events))
-            draw.multiline_text((x*cell_width+text_padding, y*cell_height+32+text_padding), events_list, 0, font)
+            draw.multiline_text((x*cell_width+text_padding, y*cell_height+date_divide_height+text_padding), events_list, 0, font)
     
     def __render_date_area(self, draw, start, width, height, font):
-        text_padding = 5
-        date_text = self.today.strftime("%A\n The %d of %B in the Year %Y")
-        draw.multiline_text((start+width//2+text_padding, height//2+text_padding), date_text, 0, font, anchor="mm",align="center")
+        date_text = self.today.strftime("%A\n The %d of %B\n in the Year %Y")
+        draw.multiline_text((start+width//2, height//2), date_text, 0, font, anchor="mm",align="center")
 
     def __render_weather_area(self, draw, im, weather, start_x,start_y, width, height, font):
-        text_padding = 5
-
-        weather_text = "\n".join([f"{weather.temperature}°C", weather.weather])
-        draw.multiline_text((start_x+width//2+text_padding, start_y+height//2+text_padding), weather_text, 0, font, anchor="mm", align="center")
+        weather_text = "\n".join([f"{weather.temperature}°C", weather.weather.title()])
+        draw.multiline_text((start_x+width//2, start_y+height//2), weather_text, 0, font, anchor="mm", align="center")
         icon = Image.open(requests.get(weather.icon, stream=True).raw)
-        im.paste(icon,(start_x+text_padding, 286), icon)
+        im.paste(icon,(start_x+width//2-icon.width//2, start_y+height//2+icon.height//2), icon)
 
