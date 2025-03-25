@@ -55,21 +55,6 @@ class ECalendar:
             print(entries)
         self.entries = entries
 
-    def render_web(self, todays_weather,template_path="templates/", output_path = None):
-        environment = Environment(loader=FileSystemLoader("templates/"))
-        template = environment.get_template("cal_template.html")
-
-
-        content = template.render(entries=self.entries,
-                                  today=self.today,
-                                  weekdays=self.weekdays_ordering,
-                                  forecast=todays_weather)
-        if output_path is None:
-            print(content)
-        else:
-            with open(output_path, "w+") as f:
-                f.write(content)
-
 
     def render(self, today_weather, config_data, output_path = None):
         conf = config_data

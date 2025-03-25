@@ -22,7 +22,6 @@ def main():
     fake_event_2 = event.Event("Friend 2 Birthday", date.today(), date(year=2023,month=9,day=30))
     fake_events = [fake_event, fake_event_2]
     cal.add_events(fake_events)
-    cal.render_web(weather_manager.get_weather(), template_path="../templates/", output_path="test_output.html")
 
 if __name__ == "__main__":
     main()
