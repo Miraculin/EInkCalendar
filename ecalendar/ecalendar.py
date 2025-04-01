@@ -1,7 +1,5 @@
-from jinja2 import Environment, FileSystemLoader
 from datetime import date, timedelta
 from PIL import Image, ImageDraw, ImageFont
-import requests
 from textwrap import wrap
 
 from .entry import Entry
@@ -139,6 +137,6 @@ class ECalendar:
     def __render_weather_area(self, draw, im, weather, start_x,start_y, width, height, font):
         weather_text = "\n".join([f"{weather.temperature}°C", weather.weather.title()])
         draw.multiline_text((start_x+width//2, start_y+height//2), weather_text, 0, font, anchor="mm", align="center")
-        icon = Image.open(requests.get(weather.icon, stream=True).raw)
+        icon = Image.open(weather.icon)
         im.paste(icon,(start_x+width//2-icon.width//2, start_y+height//2+icon.height//2), icon)
 

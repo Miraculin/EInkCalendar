@@ -7,6 +7,7 @@ test*.html
 cal_sample.html
 output.html
 *.bmp
+icons
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -182,3 +183,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+#profiling data
+*.prof

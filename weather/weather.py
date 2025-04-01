@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 from .forecast import Forecast
 
 class Weather():
@@ -21,7 +22,19 @@ class Weather():
         if response.status_code == 200:
             data = response.json()
             
-            forecast.set_forecast(data["main"]["temp"], data["weather"][0]["description"], self.icon_url.format(data["weather"][0]["icon"]))
+            icon_id = data["weather"][0]["icon"]
+
+            if not os.path.exists("icons"):
+                os.mkdir("icons")
+            icon_filepath = f"icons/{icon_id}.png"
+            if not os.path.exists(icon_filepath):
+                with open(icon_filepath, "wb+" ) as f:
+                    icon_download = self.icon_url.format(icon_id)
+                    r = requests.get(icon_download, stream=True)
+                    for chunk in r.iter_content(chunk_size=128):
+                        f.write(chunk)
+
+            forecast.set_forecast(data["main"]["temp"], data["weather"][0]["description"], icon_filepath)
             
             return forecast
         else:
