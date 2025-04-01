@@ -25,4 +25,4 @@ class Config():
 
         font = config_data["font"]
 
-        return cls(weather_api_key, latitude, longitude, display_height, display_width, font)
+        return cls(weather_api_key, latitude, longitude, display_width, display_height, font)
